@@ -31,7 +31,7 @@ Xcode command line tools (`xcode-select --install`).
 Option 1, from a clone of this repository:
 
 ```
-git clone https://github.com/OWNER/clen.mmix.git
+git clone https://github.com/colmlenehan-gh/clen.mmix.git
 cd clen.mmix
 ./install.sh
 ```
@@ -39,10 +39,10 @@ cd clen.mmix
 Option 2, one line:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/OWNER/clen.mmix/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/colmlenehan-gh/clen.mmix/main/install.sh | bash
 ```
 
-Replace `OWNER` with the GitHub account that hosts the repository.
+Replace `colmlenehan-gh` with the GitHub account that hosts the repository.
 
 The installer places the project at `~/clen.mmix`. Terminal opens in your home
 folder, so from a new window the launch command works exactly as written:

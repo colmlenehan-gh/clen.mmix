@@ -11,12 +11,12 @@
 #   ./install.sh               install or update from this checkout
 #   ./install.sh --uninstall   remove ~/clen.mmix
 #
-# One-line install from GitHub (replace OWNER with the account hosting the repo):
-#   curl -fsSL https://raw.githubusercontent.com/OWNER/clen.mmix/main/install.sh | bash
+# One-line install from GitHub (replace colmlenehan-gh with the account hosting the repo):
+#   curl -fsSL https://raw.githubusercontent.com/colmlenehan-gh/clen.mmix/main/install.sh | bash
 
 set -euo pipefail
 
-REPO_URL="${CLEN_REPO_URL:-https://github.com/OWNER/clen.mmix.git}"
+REPO_URL="${CLEN_REPO_URL:-https://github.com/colmlenehan-gh/clen.mmix.git}"
 DEST="$HOME/clen.mmix"
 
 say() { printf '%s\n' "$*"; }
