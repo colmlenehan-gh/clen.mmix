@@ -1,0 +1,39 @@
+# Local machine status
+$ cd ~
+$ sw_vers
+| ProductName:		macOS
+| ProductVersion:		26.1
+| BuildVersion:		25B78
+$ uname -a
+| Darwin {{HOST}} 25.1.0 Darwin Kernel Version 25.1.0: Mon Oct 20 19:32:41 PDT 2026; root:xnu-12377.41.6~2/RELEASE_ARM64_T8142 arm64
+$ top -l 1 -n 6 -o cpu -stats pid,command,cpu,mem
+| Processes: 462 total, 3 running, 459 sleeping, 2154 threads
+| Load Avg: 1.92, 1.74, 1.61
+| CPU usage: 6.80% user, 4.25% sys, 88.95% idle
+| MemRegions: 214830 total, 4412M resident, 142M private, 1873M shared.
+| PhysMem: 15G used (2310M wired, 1782M compressor), 811M unused.
+|
+| PID    COMMAND          %CPU MEM
+| 612    WindowServer     9.4  612M
+| 24471  Terminal         4.1  148M
+| 801    Safari           3.7  1203M
+| 1190   mds_stores       2.2  311M
+| 405    coreaudiod       0.9  18M
+$ lsof -iTCP -sTCP:LISTEN -P -n
+| COMMAND     PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+| rapportd    702 {{USER}}    8u  IPv4 0x3f1c2a8b7d94e601      0t0  TCP *:49152 (LISTEN)
+| rapportd    702 {{USER}}    9u  IPv6 0x3f1c2a8b7d94d3a1      0t0  TCP *:49152 (LISTEN)
+| ControlCe   731 {{USER}}   10u  IPv4 0x3f1c2a8b7d94f821      0t0  TCP *:7000 (LISTEN)
+| ControlCe   731 {{USER}}   11u  IPv6 0x3f1c2a8b7d94e1c1      0t0  TCP *:7000 (LISTEN)
+$ netstat -an | grep ESTABLISHED | head -n 4
+| tcp4       0      0  192.168.1.42.51876     203.0.113.17.443       ESTABLISHED
+| tcp4       0      0  192.168.1.42.51602     198.51.100.24.22       ESTABLISHED
+| tcp4       0      0  192.168.1.42.51240     192.0.2.80.443         ESTABLISHED
+| tcp4       0      0  192.168.1.42.50911     198.51.100.130.443     ESTABLISHED
+$ diskutil list internal
+| /dev/disk0 (internal, physical):
+|    #:                       TYPE NAME                    SIZE       IDENTIFIER
+|    0:      GUID_partition_scheme                        *1.0 TB     disk0
+|    1:             Apple_APFS_ISC Container disk1         524.3 MB   disk0s1
+|    2:                 Apple_APFS Container disk3         994.7 GB   disk0s2
+|    3:        Apple_APFS_Recovery Container disk2         5.4 GB     disk0s3

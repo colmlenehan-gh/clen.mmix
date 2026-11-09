@@ -1,0 +1,30 @@
+# Containers and cluster status for a fictional staging environment
+$ cd ~/ops/staging
+$ docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Status}}'
+| NAMES        IMAGE                          STATUS
+| relay-1      registry.corp.example/relay:4.2.0   Up 3 hours (healthy)
+| relay-2      registry.corp.example/relay:4.2.0   Up 3 hours (healthy)
+| ledger-db    postgres:16.4                  Up 3 days
+| cache        redis:7.4-alpine               Up 3 days
+| gateway      nginx:1.26-alpine              Up 3 days
+$ docker logs --tail 6 relay-1
+| 2026-11-09T19:45:01Z INFO  relay: accepted connection id=7f31 peer=10.4.0.18:48822
+| 2026-11-09T19:45:01Z INFO  relay: session established id=7f31 cipher=chacha20-poly1305
+| 2026-11-09T19:45:03Z INFO  relay: forwarded 2.4 KiB id=7f31 upstream=ledger-db
+| 2026-11-09T19:45:04Z INFO  relay: heartbeat ok peers=14 queue=0
+| 2026-11-09T19:45:09Z INFO  relay: key rotation scheduled in 3h12m
+| 2026-11-09T19:45:09Z INFO  relay: heartbeat ok peers=14 queue=0
+$ kubectl get pods -n staging
+| NAME                       READY   STATUS    RESTARTS   AGE
+| api-6f9d7c8b54-4kz2p       1/1     Running   0          2d4h
+| api-6f9d7c8b54-m8t6w       1/1     Running   0          2d4h
+| worker-5b7d94c6f8-q2xvn    1/1     Running   1          2d4h
+| worker-5b7d94c6f8-wd9hs    1/1     Running   0          2d4h
+| scheduler-7c8f6d5b99-lp5rt 1/1     Running   0          6d1h
+$ kubectl top pods -n staging
+| NAME                       CPU(cores)   MEMORY(bytes)
+| api-6f9d7c8b54-4kz2p       41m          212Mi
+| api-6f9d7c8b54-m8t6w       38m          208Mi
+| worker-5b7d94c6f8-q2xvn    112m         389Mi
+| worker-5b7d94c6f8-wd9hs    97m          371Mi
+| scheduler-7c8f6d5b99-lp5rt 6m           64Mi

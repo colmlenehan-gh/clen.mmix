@@ -1,0 +1,30 @@
+# Crunching fictional telemetry with a script
+$ cd ~/src/telemetry
+$ head -n 5 data/telemetry-2026-11.csv
+| ts,node,rtt_ms,loss_pct,bytes_in,bytes_out
+| 2026-11-01T00:00:00Z,node-a,14.2,0.0,1048220,884102
+| 2026-11-01T00:00:00Z,node-b,18.9,0.1,992310,901774
+| 2026-11-01T00:00:00Z,node-c,22.4,0.0,1120045,990318
+| 2026-11-01T00:05:00Z,node-a,14.0,0.0,1051877,879004
+$ wc -l data/telemetry-2026-11.csv
+|    77761 data/telemetry-2026-11.csv
+$ python3 summarize.py data/telemetry-2026-11.csv --window 1h
+| loading data/telemetry-2026-11.csv ... 77760 rows
+| parsing timestamps ................... ok
+| dropping 14 malformed rows ........... ok
+| resampling to 1h windows ............. ok
+@bar Computing percentiles
+|
+| node     p50_rtt   p95_rtt   p99_rtt   loss_avg   throughput
+| node-a     14.1      19.8      27.3      0.02%    8.4 MB/s
+| node-b     18.7      26.1      41.9      0.08%    7.9 MB/s
+| node-c     22.3      33.6      52.0      0.03%    9.1 MB/s
+|
+| wrote report to reports/2026-11-summary.json
+$ python3 -m pytest -q
+| ........................................                                 [100%]
+| 40 passed in 1.38s
+$ git status -sb
+| ## main...origin/main
+|  M summarize.py
+| ?? reports/2026-11-summary.json

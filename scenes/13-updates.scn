@@ -1,0 +1,33 @@
+# Routine package maintenance
+$ cd ~
+$ brew update
+| ==> Updating Homebrew...
+| Already up-to-date.
+$ brew outdated
+| curl (8.10.1) < 8.11.0
+| openssl@3 (3.4.0) < 3.4.1
+| nmap (7.95) < 7.96
+| git (2.47.0) < 2.47.1
+$ brew upgrade
+| ==> Upgrading 4 outdated packages:
+| curl 8.10.1 -> 8.11.0
+| openssl@3 3.4.0 -> 3.4.1
+| nmap 7.95 -> 7.96
+| git 2.47.0 -> 2.47.1
+| ==> Fetching downloads for: curl, openssl@3, nmap and git
+| ==> Fetching curl
+| ==> Downloading https://ghcr.io/v2/homebrew/core/curl/blobs/sha256:3f1a0c2d
+@bar Downloading curl
+| ==> Pouring curl--8.11.0.arm64_tahoe.bottle.tar.gz
+| 🍺  /opt/homebrew/Cellar/curl/8.11.0: 534 files, 4.2MB
+| ==> Fetching openssl@3
+@bar Downloading openssl@3
+| ==> Pouring openssl@3--3.4.1.arm64_tahoe.bottle.tar.gz
+| 🍺  /opt/homebrew/Cellar/openssl@3/3.4.1: 7,236 files, 33.1MB
+| ==> Summary
+| 🍺  /opt/homebrew/Cellar/git/2.47.1: 1,687 files, 52.4MB
+$ brew cleanup
+| Removing: /opt/homebrew/Cellar/curl/8.10.1... (534 files, 4.2MB)
+| Removing: /opt/homebrew/Cellar/openssl@3/3.4.0... (7,236 files, 33.1MB)
+| Removing: /opt/homebrew/Cellar/git/2.47.0... (1,687 files, 52.4MB)
+| ==> This operation has freed approximately 89.7MB of disk space.

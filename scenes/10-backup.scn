@@ -1,0 +1,32 @@
+# Backing up to a fictional storage host
+$ cd ~/ops
+$ rsync -avz --progress vault/ backup@store01.corp.example:/srv/backup/vault/
+| sending incremental file list
+| ./
+| manifest.json
+|           3,482 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=11/13)
+| vault.sha256
+|              65 100%   63.48kB/s    0:00:00 (xfr#2, to-chk=10/13)
+| out/vault/config.yaml
+|           8,112 100%    7.74MB/s    0:00:00 (xfr#3, to-chk=7/13)
+| out/vault/nodes.csv
+|          22,940 100%   10.94MB/s    0:00:00 (xfr#4, to-chk=6/13)
+| out/vault/telemetry-oct.parquet
+|         931,204 100%   14.21MB/s    0:00:00 (xfr#5, to-chk=5/13)
+| out/vault/telemetry-sep.parquet
+|         882,330 100%   13.77MB/s    0:00:00 (xfr#6, to-chk=4/13)
+| out/vault/keys/node-a.pub
+|             411 100%  401.37kB/s    0:00:00 (xfr#7, to-chk=1/13)
+| out/vault/keys/node-b.pub
+|             411 100%  401.37kB/s    0:00:00 (xfr#8, to-chk=0/13)
+|
+| sent 1.62M bytes  received 214 bytes  1.08M bytes/sec
+| total size is 1.85M  speedup is 1.14
+$ ssh backup@store01.corp.example 'ls -lh /srv/backup/vault | head -n 5'
+| total 4.6M
+| -rw------- 1 backup backup 3.4K Nov  9 19:46 manifest.json
+| -rw------- 1 backup backup 4.5M Nov  3 11:20 vault.bin
+| -rw-r--r-- 1 backup backup   65 Nov  9 19:46 vault.sha256
+| drwxr-xr-x 3 backup backup 4.0K Nov  9 19:46 out
+$ ssh backup@store01.corp.example 'sha256sum -c /srv/backup/vault/vault.sha256'
+| /srv/backup/vault/vault.bin: OK

@@ -1,0 +1,37 @@
+# Short packet capture summary against a fictional host
+$ cd ~
+$ sudo tcpdump -i en0 -n -c 10 host 203.0.113.17 and port 443
+| Password:
+| tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+| listening on en0, link-type EN10MB (Ethernet), snapshot length 524288 bytes
+| 19:44:02.118204 IP 192.168.1.42.51876 > 203.0.113.17.443: Flags [S], seq 3318402617, win 65535, length 0
+| 19:44:02.132911 IP 203.0.113.17.443 > 192.168.1.42.51876: Flags [S.], seq 1104772950, ack 3318402618, win 65160, length 0
+| 19:44:02.132987 IP 192.168.1.42.51876 > 203.0.113.17.443: Flags [.], ack 1, win 2058, length 0
+| 19:44:02.133540 IP 192.168.1.42.51876 > 203.0.113.17.443: Flags [P.], seq 1:518, ack 1, win 2058, length 517
+| 19:44:02.148267 IP 203.0.113.17.443 > 192.168.1.42.51876: Flags [.], ack 518, win 506, length 0
+| 19:44:02.149003 IP 203.0.113.17.443 > 192.168.1.42.51876: Flags [P.], seq 1:1449, ack 518, win 506, length 1448
+| 19:44:02.149051 IP 192.168.1.42.51876 > 203.0.113.17.443: Flags [.], ack 1449, win 2034, length 0
+| 19:44:02.150318 IP 203.0.113.17.443 > 192.168.1.42.51876: Flags [P.], seq 1449:2161, ack 518, win 506, length 712
+| 19:44:02.152774 IP 192.168.1.42.51876 > 203.0.113.17.443: Flags [P.], seq 518:644, ack 2161, win 2048, length 126
+| 19:44:02.166120 IP 203.0.113.17.443 > 192.168.1.42.51876: Flags [P.], seq 2161:2432, ack 644, win 506, length 271
+| 10 packets captured
+| 24 packets received by filter
+| 0 packets dropped by kernel
+$ curl -sI https://lab-node.corp.example/health
+| HTTP/2 200
+| server: nginx/1.26.2
+| date: Mon, 09 Nov 2026 19:44:31 GMT
+| content-type: application/json
+| content-length: 15
+| strict-transport-security: max-age=63072000
+| x-request-id: 5c1e0b92a7d34f68
+$ openssl s_client -connect lab-node.corp.example:443 -brief </dev/null
+| CONNECTION ESTABLISHED
+| Protocol version: TLSv1.3
+| Ciphersuite: TLS_AES_256_GCM_SHA384
+| Peer certificate: CN = lab-node.corp.example
+| Hash used: SHA256
+| Signature type: ECDSA
+| Verification: OK
+| Server Temp Key: X25519, 253 bits
+| DONE

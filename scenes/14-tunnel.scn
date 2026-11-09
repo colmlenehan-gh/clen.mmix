@@ -1,0 +1,36 @@
+# Bringing up a fictional VPN tunnel and checking it
+$ cd ~
+$ sudo wg-quick up lab0
+| Password:
+| [#] ifconfig utun7 inet 10.66.0.2/32 10.66.0.2 alias
+| [#] ifconfig utun7 up
+| [#] route -q -n add -inet 10.66.0.0/24 -interface utun7
+| [#] networksetup -setdnsservers "Wi-Fi" 10.66.0.1
+$ sudo wg show lab0
+| interface: utun7
+|   public key: n3Kx0wQ9mYt7Lb2VhRcU5aEoJdG1iFsNpTzXq8vYk4I=
+|   private key: (hidden)
+|   listening port: 51820
+|
+| peer: Zb2Kp9wQxL4mT7vR1nYc8hEeUa5oJdG0iFsN3tXr6Vk=
+|   endpoint: 203.0.113.1:51820
+|   allowed ips: 10.66.0.0/24
+|   latest handshake: 2 seconds ago
+|   transfer: 4.12 KiB received, 3.87 KiB sent
+|   persistent keepalive: every 25 seconds
+$ ping -c 3 10.66.0.1
+| PING 10.66.0.1 (10.66.0.1): 56 data bytes
+| 64 bytes from 10.66.0.1: icmp_seq=0 ttl=64 time=15.771 ms
+| 64 bytes from 10.66.0.1: icmp_seq=1 ttl=64 time=14.902 ms
+| 64 bytes from 10.66.0.1: icmp_seq=2 ttl=64 time=15.318 ms
+|
+| --- 10.66.0.1 ping statistics ---
+| 3 packets transmitted, 3 packets received, 0.0% packet loss
+| round-trip min/avg/max/stddev = 14.902/15.330/15.771/0.357 ms
+$ ssh deploy@10.66.0.10 'hostname && uptime'
+| lab-node
+|  19:49:37 up 12 days,  8:04,  0 users,  load average: 0.02, 0.05, 0.01
+$ sudo wg-quick down lab0
+| [#] route -q -n delete -inet 10.66.0.0/24
+| [#] ifconfig utun7 down
+| [#] networksetup -setdnsservers "Wi-Fi" empty

@@ -1,0 +1,47 @@
+# Pull, build and self-test a fictional project
+$ cd ~/src/lattice
+$ git pull --rebase origin main
+| remote: Enumerating objects: 27, done.
+| remote: Counting objects: 100% (27/27), done.
+| remote: Compressing objects: 100% (14/14), done.
+| remote: Total 19 (delta 11), reused 15 (delta 6), pack-reused 0
+| Unpacking objects: 100% (19/19), 6.42 KiB | 1.07 MiB/s, done.
+| From github.example:corp/lattice
+|  * branch            main       -> FETCH_HEAD
+|    4be91c2..d70a3f8  main       -> origin/main
+| Updating 4be91c2..d70a3f8
+| Fast-forward
+|  src/net/socket.c     | 41 +++++++++++++++++++++++++++-----
+|  src/net/handshake.c  | 23 ++++++++++++++----
+|  src/core/ring.c      |  9 +++----
+|  tests/test_ring.c    | 18 +++++++++++++++
+|  4 files changed, 79 insertions(+), 12 deletions(-)
+$ cmake --build build -j8
+| [  8%] Building C object src/CMakeFiles/lattice.dir/core/ring.c.o
+| [ 16%] Building C object src/CMakeFiles/lattice.dir/core/arena.c.o
+| [ 25%] Building C object src/CMakeFiles/lattice.dir/net/socket.c.o
+| [ 33%] Building C object src/CMakeFiles/lattice.dir/net/handshake.c.o
+| [ 41%] Building C object src/CMakeFiles/lattice.dir/net/framing.c.o
+| [ 50%] Building C object src/CMakeFiles/lattice.dir/crypto/keyring.c.o
+| [ 58%] Building C object src/CMakeFiles/lattice.dir/crypto/aead.c.o
+| [ 66%] Building C object src/CMakeFiles/lattice.dir/util/log.c.o
+| [ 75%] Linking C static library liblattice.a
+| [ 83%] Building C object tests/CMakeFiles/test_ring.dir/test_ring.c.o
+| [ 91%] Linking C executable test_ring
+| [100%] Linking C executable lattice
+| [100%] Built target lattice
+$ ./build/lattice --selftest
+| lattice 2.7.3 (d70a3f8) selftest
+| [ ok ] ring buffer wraparound ............ 0.4 ms
+| [ ok ] arena alloc/free 10000 cycles ..... 1.9 ms
+| [ ok ] framing round-trip ................ 0.7 ms
+| [ ok ] keyring rotation .................. 3.1 ms
+| [ ok ] aead seal/open 4096 blocks ........ 12.6 ms
+| [ ok ] handshake state machine ........... 2.2 ms
+| 6 passed, 0 failed
+$ git log --oneline -n 5
+| d70a3f8 net: tighten handshake timeout handling
+| 4be91c2 core: fix ring wraparound off-by-one
+| a1f6e07 crypto: rotate keyring on schedule
+| 93cd5b4 tests: add framing round-trip case
+| 7e20d19 docs: update build instructions

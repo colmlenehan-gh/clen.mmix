@@ -1,0 +1,41 @@
+# SSH into a fictional gateway and run routine checks
+$ cd ~
+$ ssh -i ~/.ssh/id_ed25519 deploy@gw01.corp.example
+| The authenticity of host 'gw01.corp.example (203.0.113.1)' can't be established.
+| ED25519 key fingerprint is SHA256:Qm4n8vJt2Xk0LrYc7aHf1sZpWb9dEoUi3gNyT5uKq6M.
+| This key is not known by any other names.
+| Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+| Warning: Permanently added 'gw01.corp.example' (ED25519) to the list of known hosts.
+| Welcome to Ubuntu 24.04.1 LTS (GNU/Linux 6.8.0-48-generic x86_64)
+|
+| Last login: Sun Nov  8 22:14:09 2026 from 198.51.100.24
+@prompt deploy@gw01:~$
+$ uptime
+|  19:42:11 up 41 days,  3:12,  1 user,  load average: 0.08, 0.11, 0.09
+$ df -h /
+| Filesystem      Size  Used Avail Use% Mounted on
+| /dev/nvme0n1p2  468G  127G  318G  29% /
+$ free -m
+|                total        used        free      shared  buff/cache   available
+| Mem:           31904        6120       18742         212        7041       25311
+| Swap:           2047           0        2047
+$ sudo systemctl status nginx --no-pager
+| [sudo] password for deploy:
+| * nginx.service - A high performance web server and a reverse proxy server
+|      Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; preset: enabled)
+|      Active: active (running) since Sat 2026-09-26 16:30:44 UTC; 6 weeks 3 days ago
+|        Docs: man:nginx(8)
+|    Main PID: 912 (nginx)
+|       Tasks: 5 (limit: 38213)
+|      Memory: 14.2M (peak: 31.6M)
+|         CPU: 2min 41.337s
+$ sudo tail -n 5 /var/log/nginx/access.log
+| 198.51.100.24 - - [09/Nov/2026:19:41:58 +0000] "GET /health HTTP/1.1" 200 15 "-" "kube-probe/1.31"
+| 198.51.100.24 - - [09/Nov/2026:19:42:03 +0000] "GET /health HTTP/1.1" 200 15 "-" "kube-probe/1.31"
+| 203.0.113.88 - - [09/Nov/2026:19:42:07 +0000] "GET /api/v2/status HTTP/1.1" 200 412 "-" "curl/8.7.1"
+| 198.51.100.24 - - [09/Nov/2026:19:42:08 +0000] "GET /health HTTP/1.1" 200 15 "-" "kube-probe/1.31"
+| 203.0.113.88 - - [09/Nov/2026:19:42:11 +0000] "GET /api/v2/status HTTP/1.1" 200 412 "-" "curl/8.7.1"
+$ exit
+| logout
+| Connection to gw01.corp.example closed.
+@prompt

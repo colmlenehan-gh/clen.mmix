@@ -1,0 +1,28 @@
+# Decrypting and inspecting your own archive
+$ cd ~/ops/vault
+$ ls -la
+| total 9248
+| drwxr-xr-x   6 {{USER}}  staff      192 Nov  9 19:38 .
+| drwxr-xr-x  14 {{USER}}  staff      448 Nov  9 18:02 ..
+| -rw-------   1 {{USER}}  staff     3482 Nov  3 11:20 manifest.json
+| -rw-r--r--   1 {{USER}}  staff       65 Nov  3 11:20 vault.sha256
+| -rw-------   1 {{USER}}  staff  4718624 Nov  3 11:20 vault.bin
+| drwxr-xr-x   3 {{USER}}  staff       96 Nov  9 19:38 out
+$ shasum -a 256 -c vault.sha256
+| vault.bin: OK
+$ openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in vault.bin -out out/vault.tar.gz
+| enter AES-256-CBC decryption password:
+@bar Decrypting vault.bin
+$ tar -tzvf out/vault.tar.gz | head -n 8
+| drwxr-xr-x  0 {{USER}}  staff       0 Nov  3 11:19 vault/
+| -rw-r--r--  0 {{USER}}  staff    8112 Nov  2 17:44 vault/config.yaml
+| -rw-r--r--  0 {{USER}}  staff   22940 Nov  2 17:44 vault/nodes.csv
+| -rw-r--r--  0 {{USER}}  staff  931204 Nov  1 09:12 vault/telemetry-oct.parquet
+| -rw-r--r--  0 {{USER}}  staff  882330 Nov  1 09:12 vault/telemetry-sep.parquet
+| drwxr-xr-x  0 {{USER}}  staff       0 Nov  3 11:19 vault/keys/
+| -rw-------  0 {{USER}}  staff     411 Nov  3 11:19 vault/keys/node-a.pub
+| -rw-------  0 {{USER}}  staff     411 Nov  3 11:19 vault/keys/node-b.pub
+$ tar -xzf out/vault.tar.gz -C out && find out -type f | wc -l
+|        9
+$ openssl rand -hex 16
+| 7f3a9c0e5b2d84a1c6e9f0237d5b8a4c

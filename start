@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+#
+# clen.mmix/start
+#
+# A harmless terminal "hacker typer". Mash the keyboard and pre-written,
+# realistic-looking terminal sessions appear in your normal Terminal window.
+#
+# Nothing on screen is ever executed. Every command and every output line is
+# plain text read from the scenes/ directory and printed. No network access,
+# no files touched, no input is passed to a shell.
+#
+# Keys:
+#   any key      reveal more of the session
+#   Tab          flash an ACCESS GRANTED banner
+#   `  (backtick) flash an ACCESS DENIED banner
+#   Ctrl-C       quit (Ctrl-D also works)
+
+VERSION="1.0.0"
+
+# ---- locate ourselves, following symlinks ----------------------------------
+src="${BASH_SOURCE[0]}"
+while [ -h "$src" ]; do
+  d="$(cd -P "$(dirname "$src")" && pwd)"
+  src="$(readlink "$src")"
+  case "$src" in /*) ;; *) src="$d/$src" ;; esac
+done
+ROOT="$(cd -P "$(dirname "$src")" && pwd)"
+SCENES="$ROOT/scenes"
+
+usage() {
+  cat <<EOF
+clen.mmix $VERSION - harmless terminal hacker typer
+
+Usage: clen.mmix/start [options]
+
+  -s, --speed N    characters revealed per keypress, 1-12 (default 3)
+  -h, --help       show this help
+  -v, --version    show version
+
+Mash any key. Tab = ACCESS GRANTED, backtick = ACCESS DENIED, Ctrl-C = quit.
+Everything shown is pre-written text. Nothing is ever executed.
+EOF
+}
+
+speed=3
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -s|--speed) shift; speed="${1:-3}" ;;
+    -h|--help) usage; exit 0 ;;
+    -v|--version) echo "clen.mmix $VERSION"; exit 0 ;;
+    *) echo "start: unknown option: $1" >&2; usage >&2; exit 2 ;;
+  esac
+  shift
+done
+case "$speed" in ''|*[!0-9]*) speed=3 ;; esac
+[ "$speed" -lt 1 ] && speed=1
+[ "$speed" -gt 12 ] && speed=12
+
+if [ ! -t 0 ] || [ ! -t 1 ]; then
+  echo "start: this needs an interactive terminal." >&2
+  exit 1
+fi
+
+files=( "$SCENES"/*.scn )
+if [ ! -e "${files[0]}" ]; then
+  echo "start: no scene files found in $SCENES" >&2
+  exit 1
+fi
+
+USER_NAME="${CLEN_USER:-${USER:-$(id -un 2>/dev/null || echo user)}}"
+HOST_NAME="${CLEN_HOST:-$(hostname -s 2>/dev/null || echo mac)}"
+
+# ---- state -----------------------------------------------------------------
+T=()            # item kinds for the current scene: c cmd, o output, b bar, p prompt
+X=()            # item text
+count=0
+idx=0
+sidx=${#files[@]}
+phase=none
+cmdtext=""
+cpos=0
+cwd="$HOME"
+ovr=""          # prompt override, used for "remote" sessions
+bpct=0
+blabel=""
+
+shuffle() {
+  local i j tmp n=${#files[@]}
+  for (( i=n-1; i>0; i-- )); do
+    j=$(( RANDOM % (i+1) ))
+    tmp="${files[i]}"; files[i]="${files[j]}"; files[j]="$tmp"
+  done
+}
+
+load_scene() {
+  local f="${files[sidx]}" line kind text
+  sidx=$(( sidx + 1 ))
+  T=(); X=(); count=0; idx=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ''|'#'*)     continue ;;
+      '$ '*)       kind=c; text="${line:2}" ;;
+      '|')         kind=o; text="" ;;
+      '| '*)       kind=o; text="${line:2}" ;;
+      '@bar '*)    kind=b; text="${line:5}" ;;
+      '@prompt')   kind=p; text="" ;;
+      '@prompt '*) kind=p; text="${line:8}" ;;
+      *)           continue ;;
+    esac
+    text="${text//\{\{USER\}\}/$USER_NAME}"
+    text="${text//\{\{HOST\}\}/$HOST_NAME}"
+    T[count]="$kind"; X[count]="$text"; count=$(( count + 1 ))
+  done < "$f"
+}
+
+next_scene() {
+  if [ "$sidx" -ge "${#files[@]}" ]; then shuffle; sidx=0; fi
+  ovr=""; cwd="$HOME"
+  load_scene
+}
+
+dir_label() {
+  if [ "$cwd" = "$HOME" ]; then LABEL="~"; else LABEL="${cwd##*/}"; fi
+}
+
+show_prompt() {
+  if [ -n "$ovr" ]; then
+    printf '%s ' "$ovr"
+  else
+    dir_label
+    printf '%s@%s %s %% ' "$USER_NAME" "$HOST_NAME" "$LABEL"
+  fi
+}
+
+apply_cd() {
+  case "$1" in
+    'cd'|'cd ~')  cwd="$HOME" ;;
+    'cd ~/'*)     cwd="$HOME/${1#cd ~/}" ;;
+    'cd ..')      cwd="${cwd%/*}"; [ -z "$cwd" ] && cwd="/" ;;
+    'cd /'*)      cwd="${1#cd }" ;;
+    'cd '*)       cwd="$cwd/${1#cd }" ;;
+  esac
+  [ "$cwd" != "/" ] && cwd="${cwd%/}"
+}
+
+draw_bar() {
+  local w=32 fill i bar=""
+  fill=$(( bpct * w / 100 ))
+  for (( i=0; i<w; i++ )); do
+    if (( i < fill )); then bar+="#"; else bar+="."; fi
+  done
+  printf '\r%s [%s] %3d%%' "$blabel" "$bar" "$bpct"
+}
+
+# Move on to whatever comes next without needing a keypress when appropriate.
+settle() {
+  while :; do
+    if (( idx >= count )); then next_scene; fi
+    case "${T[idx]}" in
+      o) phase=out; return ;;
+      b) blabel="${X[idx]}"; idx=$(( idx + 1 )); bpct=0; phase=bar; draw_bar; return ;;
+      p) ovr="${X[idx]}"; idx=$(( idx + 1 )) ;;
+      c) cmdtext="${X[idx]}"; idx=$(( idx + 1 )); cpos=0; phase=cmd; show_prompt; return ;;
+      *) idx=$(( idx + 1 )) ;;
+    esac
+  done
+}
+
+emit_lines() {
+  local k=$(( 1 + RANDOM % 3 + speed / 3 ))
+  while (( k > 0 )) && (( idx < count )) && [ "${T[idx]}" = "o" ]; do
+    printf '%s\n' "${X[idx]}"
+    idx=$(( idx + 1 )); k=$(( k - 1 ))
+  done
+  if (( idx >= count )) || [ "${T[idx]}" != "o" ]; then settle; fi
+}
+
+bar_step() {
+  bpct=$(( bpct + 5 + RANDOM % 11 ))
+  (( bpct > 100 )) && bpct=100
+  draw_bar
+  if (( bpct >= 100 )); then printf '\n'; settle; fi
+}
+
+step() {
+  case "$phase" in
+    cmd)
+      local n=$(( speed + RANDOM % 2 ))
+      printf '%s' "${cmdtext:cpos:n}"
+      cpos=$(( cpos + n ))
+      if (( cpos >= ${#cmdtext} )); then
+        printf '\n'
+        [ -z "$ovr" ] && apply_cd "$cmdtext"
+        settle
+      fi
+      ;;
+    out) emit_lines ;;
+    bar) bar_step ;;
+  esac
+}
+
+banner() {
+  local msg="$1" line="+----------------------------+" pad
+  case "$msg" in
+    granted) pad="|       ACCESS GRANTED       |" ;;
+    *)       pad="|       ACCESS DENIED        |" ;;
+  esac
+  case "$phase" in
+    cmd) printf '\n' ;;
+    bar) printf '\n' ;;
+  esac
+  printf '%s\n%s\n%s\n' "$line" "$pad" "$line"
+  if [ "$phase" = "cmd" ]; then
+    show_prompt
+    printf '%s' "${cmdtext:0:cpos}"
+  fi
+}
+
+# ---- terminal handling -----------------------------------------------------
+saved_tty="$(stty -g 2>/dev/null)"
+cleanup() { [ -n "$saved_tty" ] && stty "$saved_tty" 2>/dev/null; }
+trap cleanup EXIT
+trap 'cleanup; printf "\n"; exit 130' INT TERM
+
+stty -echo -icanon min 1 time 0 2>/dev/null
+printf '\033[2J\033[H'
+
+settle
+
+while IFS= read -rsn1 key; do
+  case "$key" in
+    $'\004') break ;;
+    $'\t')   banner granted; continue ;;
+    '`')     banner denied;  continue ;;
+  esac
+  step
+done
+
+printf '\n'

@@ -1,0 +1,31 @@
+# Defensive log review on a fictional server (documentation IP ranges only)
+$ cd ~/ops/logs
+$ wc -l auth-2026-11-08.log
+|    48211 auth-2026-11-08.log
+$ grep -c "Failed password" auth-2026-11-08.log
+| 1904
+$ grep "Failed password" auth-2026-11-08.log | awk '{print $(NF-3)}' | sort | uniq -c | sort -rn | head -n 6
+|  611 203.0.113.50
+|  482 198.51.100.77
+|  297 192.0.2.140
+|  144 203.0.113.9
+|   88 198.51.100.201
+|   41 192.0.2.19
+$ grep "Accepted publickey" auth-2026-11-08.log | tail -n 3
+| Nov  8 21:58:02 gw01 sshd[22871]: Accepted publickey for deploy from 198.51.100.24 port 51342 ssh2: ED25519 SHA256:Qm4n8vJt2Xk0LrYc7aHf1sZpWb9dEoUi3gNyT5uKq6M
+| Nov  8 22:14:09 gw01 sshd[23044]: Accepted publickey for deploy from 198.51.100.24 port 51377 ssh2: ED25519 SHA256:Qm4n8vJt2Xk0LrYc7aHf1sZpWb9dEoUi3gNyT5uKq6M
+| Nov  9 06:30:15 gw01 sshd[24410]: Accepted publickey for backup from 203.0.113.88 port 40918 ssh2: ED25519 SHA256:Zb2Kp9wQxL4mT7vR1nYc8hEeUa5oJdG0iFsN3tXr6Vk
+$ sudo pfctl -t blocklist -T show
+| Password:
+|    192.0.2.140
+|    198.51.100.77
+|    203.0.113.50
+$ sudo pfctl -s info | head -n 8
+| Status: Enabled for 3 days 04:12:55          Debug: Urgent
+|
+| State Table                          Total             Rate
+|   current entries                       41
+|   searches                          918204          3.4/s
+|   inserts                            16380          0.1/s
+|   removals                           16339          0.1/s
+| Counters

@@ -1,0 +1,43 @@
+# Network inventory of a fictional lab host (RFC 5737 documentation addresses)
+$ cd ~
+$ ifconfig en0
+| en0: flags=8863<UP,BROADCAST,SMART,RUNNING,SIMPLEX,MULTICAST> mtu 1500
+|	options=6460<TSO4,TSO6,CHANNEL_IO,PARTIAL_CSUM,ZEROINVERT_CSUM>
+|	ether 3c:22:fb:7a:19:c4
+|	inet6 fe80::1c8e:5d2f:a7b1:42e9%en0 prefixlen 64 secured scopeid 0xb
+|	inet 192.168.1.42 netmask 0xffffff00 broadcast 192.168.1.255
+|	nd6 options=201<PERFORMNUD,DAD>
+|	media: autoselect
+|	status: active
+$ ping -c 4 gw01.corp.example
+| PING gw01.corp.example (203.0.113.1): 56 data bytes
+| 64 bytes from 203.0.113.1: icmp_seq=0 ttl=57 time=14.882 ms
+| 64 bytes from 203.0.113.1: icmp_seq=1 ttl=57 time=13.917 ms
+| 64 bytes from 203.0.113.1: icmp_seq=2 ttl=57 time=15.204 ms
+| 64 bytes from 203.0.113.1: icmp_seq=3 ttl=57 time=14.036 ms
+|
+| --- gw01.corp.example ping statistics ---
+| 4 packets transmitted, 4 packets received, 0.0% packet loss
+| round-trip min/avg/max/stddev = 13.917/14.510/15.204/0.543 ms
+$ dig +short lab-node.corp.example
+| 203.0.113.17
+$ traceroute -n -m 8 203.0.113.17
+| traceroute to 203.0.113.17 (203.0.113.17), 8 hops max, 40 byte packets
+|  1  192.168.1.1  2.114 ms  1.873 ms  1.902 ms
+|  2  198.51.100.1  9.640 ms  9.215 ms  9.388 ms
+|  3  198.51.100.22  11.047 ms  10.882 ms  11.310 ms
+|  4  203.0.113.254  13.771 ms  13.402 ms  13.559 ms
+|  5  203.0.113.17  14.208 ms  14.119 ms  14.350 ms
+$ nmap -sV -p 22,80,443,8080 203.0.113.17
+| Starting Nmap 7.95 ( https://nmap.org ) at 2026-11-09 19:41 GMT
+| Nmap scan report for lab-node.corp.example (203.0.113.17)
+| Host is up (0.021s latency).
+|
+| PORT     STATE  SERVICE  VERSION
+| 22/tcp   open   ssh      OpenSSH 9.7 (protocol 2.0)
+| 80/tcp   open   http     nginx 1.26.2
+| 443/tcp  open   ssl/http nginx 1.26.2
+| 8080/tcp closed http-proxy
+|
+| Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+| Nmap done: 1 IP address (1 host up) scanned in 7.84 seconds

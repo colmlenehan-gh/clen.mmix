@@ -1,0 +1,35 @@
+# Rotating an SSH key
+$ cd ~/.ssh
+$ ls -l
+| total 40
+| -rw-------  1 {{USER}}  staff   411 Mar 14  2026 id_ed25519
+| -rw-r--r--  1 {{USER}}  staff    97 Mar 14  2026 id_ed25519.pub
+| -rw-------  1 {{USER}}  staff  1204 Nov  9 19:42 known_hosts
+| -rw-------  1 {{USER}}  staff   318 Jun  2  2026 config
+$ ssh-keygen -t ed25519 -a 100 -C "rotated-2026-11" -f ~/.ssh/id_rotated
+| Generating public/private ed25519 key pair.
+| Enter passphrase (empty for no passphrase):
+| Enter same passphrase again:
+| Your identification has been saved in /Users/{{USER}}/.ssh/id_rotated
+| Your public key has been saved in /Users/{{USER}}/.ssh/id_rotated.pub
+| The key fingerprint is:
+| SHA256:Xt8LbQ0cNw3mZ5eVh1RkUa9yDfJ7oGpS2iTnC4vYxEs rotated-2026-11
+| The key's randomart image is:
+| +--[ED25519 256]--+
+| |        .o+=*B=. |
+| |       . .o+=*+. |
+| |        . o.+*oo |
+| |         + =.+=. |
+| |        S = *.=  |
+| |         o o.O.. |
+| |          . +o=. |
+| |           o.= o|
+| |            E.=+|
+| +----[SHA256]-----+
+$ ssh-keygen -lf ~/.ssh/id_rotated.pub
+| 256 SHA256:Xt8LbQ0cNw3mZ5eVh1RkUa9yDfJ7oGpS2iTnC4vYxEs rotated-2026-11 (ED25519)
+$ ssh-add --apple-use-keychain ~/.ssh/id_rotated
+| Identity added: /Users/{{USER}}/.ssh/id_rotated (rotated-2026-11)
+$ ssh-add -l
+| 256 SHA256:Xt8LbQ0cNw3mZ5eVh1RkUa9yDfJ7oGpS2iTnC4vYxEs rotated-2026-11 (ED25519)
+| 256 SHA256:Qm4n8vJt2Xk0LrYc7aHf1sZpWb9dEoUi3gNyT5uKq6M {{USER}}@{{HOST}} (ED25519)
